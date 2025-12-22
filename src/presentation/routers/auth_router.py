@@ -1,6 +1,6 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.application.use_cases.auth.get_access_token import GetAccessToken
@@ -10,6 +10,9 @@ from src.application.use_cases.auth.open_close_register_use_case import (
     OpenCloseRegistration,
 )
 from src.application.use_cases.auth.register_user_use_case import RegisterUser
+from src.application.use_cases.auth.validate_invite_token_use_case import (
+    ValidateInviteToken,
+)
 from src.config import PREFIX_URL, settings
 from src.domain.entities import User
 from src.domain.enums import RoleEnum
@@ -77,10 +80,20 @@ async def logout_from_profile(
 @router.post(path='/register', status_code=201, summary='Регистрация')
 async def register(
     register_form: RegisterForm,
+    validate_token: ValidateInviteToken = Depends(
+        AuthDependencies.validate_invite_token
+    ),
+    invite: Optional[str] = None,
+    is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
     register_user: RegisterUser = Depends(AuthDependencies.register_user),
 ) -> User:
+    if invite:
+        await validate_token(invite)
+    else:
+        if not is_open_reg:
+            raise HTTPException(status_code=403)
     user = await register_user(register_form)
-    logger.info(f'Зарегистрирован пользователь: {user.username}')
+    logger.info(f'Зарегистрирован пользователь: {user.name}')
     return user
 
 

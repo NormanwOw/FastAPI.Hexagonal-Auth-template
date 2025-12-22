@@ -8,21 +8,21 @@ from src.infrastructure.uow.impl import get_uow
 
 class UsersDependencies:
     @classmethod
-    def get_users(cls) -> GetUsers:
+    async def get_users(cls):
         return GetUsers(get_uow())
 
     @classmethod
-    def set_roles(cls) -> SetRoles:
+    async def set_roles(cls):
         return SetRoles(get_uow())
 
     @classmethod
-    def delete_user(cls) -> DeleteUser:
+    async def delete_user(cls):
         return DeleteUser(get_uow())
 
     @classmethod
-    def get_roles(cls) -> GetRoles:
+    async def get_roles(cls):
         return GetRoles(get_uow())
 
     @classmethod
-    def get_user_roles(cls) -> GetUserRoles:
+    async def get_user_roles(cls):
         return GetUserRoles(get_uow())
