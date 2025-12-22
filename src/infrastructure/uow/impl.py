@@ -1,9 +1,11 @@
 from src.infrastructure.repositories.interfaces import (
     IRoleRepository,
+    ISettingsRepository,
     IUserRepository,
     IUserRoleRepository,
 )
 from src.infrastructure.repositories.role_repository import RoleRepository
+from src.infrastructure.repositories.settings_repository import SettingsRepository
 from src.infrastructure.repositories.user_repository import UserRepository
 from src.infrastructure.repositories.user_role_repository import UserRoleRepository
 from src.infrastructure.session import async_session
@@ -40,6 +42,10 @@ class UnitOfWork(IUnitOfWork):
     @property
     def user_role(self) -> IUserRoleRepository:
         return UserRoleRepository(self.__session)
+
+    @property
+    def settings(self) -> ISettingsRepository:
+        return SettingsRepository(self.__session)
 
 
 def get_uow() -> IUnitOfWork:

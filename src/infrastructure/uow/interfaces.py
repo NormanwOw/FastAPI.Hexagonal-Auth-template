@@ -7,6 +7,7 @@ class IUnitOfWork(ABC):
     users: i.IUserRepository
     roles: i.IRoleRepository
     user_role: i.IUserRoleRepository
+    settings: i.ISettingsRepository
 
     async def __aenter__(self):
         raise NotImplementedError
