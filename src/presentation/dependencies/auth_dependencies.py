@@ -12,6 +12,9 @@ from src.application.use_cases.auth.open_close_register_use_case import (
     OpenCloseRegistration,
 )
 from src.application.use_cases.auth.register_user_use_case import RegisterUser
+from src.application.use_cases.auth.validate_invite_token_use_case import (
+    ValidateInviteToken,
+)
 from src.config import settings
 from src.infrastructure.managers.password_manager import PasswordManager
 from src.infrastructure.services.jwt_token_service import JwtTokenService
@@ -37,20 +40,24 @@ class AuthDependencies:
         return await GetCurrentUser(get_uow(), cls.jwt_service)(access_token)
 
     @classmethod
-    async def register_user(cls) -> RegisterUser:
+    async def register_user(cls):
         return RegisterUser(get_uow(), cls.password_manager)
 
     @classmethod
-    async def login_user(cls) -> LoginUser:
+    async def login_user(cls):
         return LoginUser(get_uow(), cls.password_manager, cls.jwt_service)
 
     @classmethod
-    async def get_access_token(cls) -> GetAccessToken:
+    async def get_access_token(cls):
         get_current_user = GetCurrentUser(get_uow(), cls.jwt_service)
         return GetAccessToken(
             get_uow(), cls.password_manager, cls.jwt_service, get_current_user
         )
 
     @classmethod
-    def invalidate_token(cls):
+    async def invalidate_token(cls):
         return InvalidateToken(get_uow())
+
+    @classmethod
+    async def validate_invite_token(cls):
+        return ValidateInviteToken(cls.jwt_service)
