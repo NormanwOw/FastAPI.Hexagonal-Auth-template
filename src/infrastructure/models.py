@@ -6,6 +6,7 @@ from sqlalchemy import UUID, ForeignKey, inspect
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from src.config import ID
+from src.domain.entities import User
 
 
 def generate_id() -> ID:
@@ -41,12 +42,23 @@ class UserModel(Base):
     disabled: Mapped[bool] = mapped_column(default=False)
     registered_at: Mapped[datetime] = mapped_column(default=datetime.now)
     token_version: Mapped[int] = mapped_column(default=1)
+
     roles: Mapped[List['RoleModel']] = relationship(
         back_populates='users', secondary='users_roles', lazy='selectin'
     )
 
-    async def get_roles(self) -> list[str]:
+    def get_roles(self) -> list[str]:
         return [role.name for role in self.roles]
+
+    def to_domain(self) -> User:
+        return User(
+            id=self.id,
+            name=self.username,
+            disabled=self.disabled,
+            registered_at=self.registered_at,
+            roles=self.get_roles(),
+            token_version=self.token_version,
+        )
 
 
 class UserRoleModel(Base):

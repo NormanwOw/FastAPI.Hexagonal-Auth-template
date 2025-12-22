@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.application.use_cases.auth.get_access_token import GetAccessToken
@@ -56,7 +56,7 @@ async def logout_from_profile(
 async def register(
     register_form: RegisterForm,
     register_user: RegisterUser = Depends(AuthDependencies.register_user),
-):
+) -> User:
     user = await register_user(register_form)
     logger.info(f'Зарегистрирован пользователь: {user.username}')
-    return Response(status_code=201)
+    return user

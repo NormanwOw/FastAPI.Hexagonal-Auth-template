@@ -1,5 +1,6 @@
 import string
 
+from src.domain.entities import User
 from src.domain.enums import RoleEnum
 from src.domain.exceptions import (
     InvalidUsernameException,
@@ -17,7 +18,7 @@ class RegisterUser:
         self.uow = uow
         self.password_manager = password_manager
 
-    async def __call__(self, register_form: RegisterForm) -> UserModel:
+    async def __call__(self, register_form: RegisterForm) -> User:
         async with self.uow:
             if register_form.password != register_form.password_confirmation:
                 raise PasswordConfirmationMissmatchException
@@ -44,4 +45,4 @@ class RegisterUser:
             await self.uow.users.add(new_user_model)
             await self.uow.commit()
 
-        return new_user_model
+        return new_user_model.to_domain()

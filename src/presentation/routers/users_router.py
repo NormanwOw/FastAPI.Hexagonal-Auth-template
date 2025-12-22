@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Body, Depends
 
+from src.application.use_cases.auth.register_user_use_case import RegisterUser
 from src.application.use_cases.users.delete_user import DeleteUser
 from src.application.use_cases.users.get_roles import GetRoles
 from src.application.use_cases.users.get_user_roles import GetUserRoles
@@ -8,7 +9,9 @@ from src.application.use_cases.users.set_roles import SetRoles
 from src.config import ID, PREFIX_URL
 from src.domain.entities import User
 from src.domain.enums import RoleEnum
+from src.infrastructure.forms.register_form import RegisterForm
 from src.infrastructure.managers.role_manager import roles
+from src.presentation.dependencies.auth_dependencies import AuthDependencies
 from src.presentation.dependencies.users_dependencies import UsersDependencies
 from src.presentation.schemas import Role
 
@@ -27,6 +30,19 @@ async def get_users(
     users: GetUsers = Depends(UsersDependencies.get_users),
 ) -> list[User]:
     return await users()
+
+
+@router.post(
+    path='',
+    summary='Создание пользователя',
+    status_code=201,
+    dependencies=[Depends(roles([RoleEnum.admin]))],
+)
+async def create_user(
+    register_form: RegisterForm,
+    register_user: RegisterUser = Depends(AuthDependencies.register_user),
+) -> User:
+    return await register_user(register_form)
 
 
 @router.patch(
