@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import ID
 from src.infrastructure.models import UserRoleModel
-from src.infrastructure.repositories.base import SQLAlchemyRepository
+from src.infrastructure.repositories.base_repository import SQLAlchemyRepository
 from src.infrastructure.repositories.interfaces import IUserRoleRepository
 
 

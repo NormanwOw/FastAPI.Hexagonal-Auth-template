@@ -12,6 +12,10 @@ class JwtTokenService(IJwtTokenService):
     def __init__(self, settings: Settings):
         self.settings = settings
 
+    def create_invite_token(self) -> str:
+        delta = datetime.timedelta(minutes=self.settings.INVITE_TOKEN_EXPIRE_MINUTES)
+        return self.create_jwt(data={'token_type': 'invite'}, expires_delta=delta)
+
     def create_access_token(self, data: dict, delta: datetime.timedelta = None) -> str:
         delta = delta or datetime.timedelta(
             minutes=self.settings.ACCESS_TOKEN_EXPIRE_MINUTES

@@ -1,18 +1,30 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.security import OAuth2PasswordRequestForm
 
 from src.application.use_cases.auth.get_access_token import GetAccessToken
 from src.application.use_cases.auth.invalidate_token_use_case import InvalidateToken
 from src.application.use_cases.auth.login_use_case import LoginUser
+from src.application.use_cases.auth.open_close_register_use_case import (
+    OpenCloseRegistration,
+)
 from src.application.use_cases.auth.register_user_use_case import RegisterUser
-from src.config import PREFIX_URL
+from src.config import PREFIX_URL, settings
 from src.domain.entities import User
+from src.domain.enums import RoleEnum
 from src.infrastructure.forms.register_form import RegisterForm
 from src.infrastructure.logger.logger import logger
+from src.infrastructure.managers.role_manager import roles
+from src.infrastructure.services.jwt_token_service import JwtTokenService
 from src.presentation.dependencies.auth_dependencies import AuthDependencies
-from src.presentation.schemas import AccessToken, RefreshToken, TokensResponse
+from src.presentation.schemas import (
+    AccessToken,
+    InviteToken,
+    RefreshToken,
+    RegistrationSchema,
+    TokensResponse,
+)
 
 router = APIRouter(
     prefix=PREFIX_URL + '/auth',
@@ -28,6 +40,16 @@ async def token(
     token = request.cookies.get('refresh_token')
     refresh_token = RefreshToken(refresh_token=token)
     return await get_token(refresh_token)
+
+
+@router.get('/invite_token')
+async def invite_token(
+    token: str = Depends(JwtTokenService(settings).create_invite_token),
+    admin: User = Depends(roles([RoleEnum.admin])),
+) -> InviteToken:
+    token = InviteToken(invite_token=token)
+    logger.info(f'[{admin.name}] | сгенерирован invite токен')
+    return token
 
 
 @router.post(path='/login', status_code=200, summary='Login')
@@ -60,3 +82,25 @@ async def register(
     user = await register_user(register_form)
     logger.info(f'Зарегистрирован пользователь: {user.username}')
     return user
+
+
+@router.get(path='/registration', summary='Получение состояния регистрации')
+async def get_registration_state(
+    is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
+) -> RegistrationSchema:
+    return RegistrationSchema(is_open=is_open_reg)
+
+
+@router.put(
+    path='/registration', status_code=200, summary='Открытие/закрытие регистрации'
+)
+async def open_close_registration(
+    reg_schema: RegistrationSchema,
+    open_close_reg: OpenCloseRegistration = Depends(AuthDependencies.open_close_reg),
+    admin: User = Depends(roles([RoleEnum.admin])),
+):
+    await open_close_reg(reg_schema)
+    logger.info(
+        f'[{admin.name}] | Регистрация {"открыта" if reg_schema.is_open else "закрыта"}'
+    )
+    return Response(status_code=200)

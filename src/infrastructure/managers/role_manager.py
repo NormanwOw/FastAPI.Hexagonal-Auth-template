@@ -13,6 +13,6 @@ def roles(required_roles: list[RoleEnum] = None):
     async def role_checker(access_token: str = Depends(access_token_getter)):
         jwt_service = JwtTokenService(settings)
         await CheckRoles(jwt_service)(access_token, required_roles)
-        await GetCurrentUser(get_uow(), jwt_service)(access_token)
+        return await GetCurrentUser(get_uow(), jwt_service)(access_token)
 
     return role_checker if not settings.DEBUG else lambda: None

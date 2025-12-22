@@ -81,6 +81,12 @@ class IUserRepository(ISQLAlchemyRepository, ABC): ...
 class IRoleRepository(ISQLAlchemyRepository, ABC): ...
 
 
+class ISettingsRepository(ISQLAlchemyRepository, ABC):
+    @abstractmethod
+    async def is_reg_open(self) -> bool:
+        raise NotImplementedError
+
+
 class IUserRoleRepository(ISQLAlchemyRepository, ABC):
     @abstractmethod
     async def delete_by_ids(self, user_id: ID, role_id: ID):

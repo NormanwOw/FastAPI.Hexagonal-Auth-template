@@ -72,7 +72,7 @@ class UserRoleModel(Base):
     )
 
 
-class Settings(Base):
+class SettingsModel(Base):
     __tablename__ = 'settings'
 
     key: Mapped[str] = mapped_column(nullable=False, unique=True)

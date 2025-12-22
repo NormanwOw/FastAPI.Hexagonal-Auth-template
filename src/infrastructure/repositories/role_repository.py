@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.models import RoleModel
-from src.infrastructure.repositories.base import SQLAlchemyRepository
+from src.infrastructure.repositories.base_repository import SQLAlchemyRepository
 from src.infrastructure.repositories.interfaces import IRoleRepository
 
 

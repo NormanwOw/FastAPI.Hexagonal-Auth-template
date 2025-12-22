@@ -23,3 +23,11 @@ class UserWithTokens(TokensResponse):
 
 class Role(BaseModel):
     name: str
+
+
+class InviteToken(BaseModel):
+    invite_token: str
+
+
+class RegistrationSchema(BaseModel):
+    is_open: bool

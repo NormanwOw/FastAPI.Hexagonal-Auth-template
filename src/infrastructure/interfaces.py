@@ -5,6 +5,10 @@ from typing import Optional
 
 class IJwtTokenService(ABC):
     @abstractmethod
+    def create_invite_token(self) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
     def create_access_token(self, data: dict, delta: datetime.timedelta = None) -> str:
         raise NotImplementedError
 
