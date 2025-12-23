@@ -20,7 +20,7 @@ async def lifespan(_application: FastAPI) -> AsyncIterator[None]:
 
 
 app = FastAPI(
-    title='{new_app} Service',
+    title='{my_app} Service',
     version='0.0.1',
     docs_url='/docs',
     redoc_url=None,

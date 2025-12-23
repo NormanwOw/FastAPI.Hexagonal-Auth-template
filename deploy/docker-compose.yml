@@ -2,13 +2,13 @@ services:
   backend:
     build:
       context: ./../
-    image: {new_app}:latest
+    image: {my_app}:latest
     restart: unless-stopped
     env_file:
       - .env
     ports:
       - "8000:8000"
-    container_name: {new_app}_service
+    container_name: {my_app}_service
     command: bash -c "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"
 
   postgres:
@@ -16,12 +16,12 @@ services:
     restart: always
     user: "70:70"
     volumes:
-      - {new_app}_postgres_data:/var/lib/postgresql/data/
+      - {my_app}_postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
     ports:
       - "5431:5432"
-    container_name: {new_app}_service_postgres
+    container_name: {my_app}_service_postgres
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
       interval: 10s
@@ -30,4 +30,4 @@ services:
       start_period: 10s
 
 volumes:
-  {new_app}_postgres_data: {}
+  {my_app}_postgres_data: {}
