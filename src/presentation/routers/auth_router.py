@@ -45,14 +45,16 @@ async def token(
     return await get_token(refresh_token)
 
 
-@router.get('/invite_token')
-async def invite_token(
-    token: str = Depends(JwtTokenService(settings).create_invite_token),
-    admin: User = Depends(roles([RoleEnum.admin])),
-) -> InviteToken:
-    token = InviteToken(invite_token=token)
-    logger.info(f'[{admin.name}] | сгенерирован invite токен')
-    return token
+if settings.IS_OPEN_CLOSE_REG_ENABLED:
+
+    @router.get('/invite_token')
+    async def invite_token(
+        token: str = Depends(JwtTokenService(settings).create_invite_token),
+        admin: User = Depends(roles([RoleEnum.admin])),
+    ) -> InviteToken:
+        token = InviteToken(invite_token=token)
+        logger.info(f'[{admin.name}] | сгенерирован invite токен')
+        return token
 
 
 @router.post(path='/login', status_code=200, summary='Login')
@@ -77,43 +79,56 @@ async def logout_from_profile(
     logger.info(f'[{user.name}] | Выполнен Logout')
 
 
-@router.post(path='/register', status_code=201, summary='Регистрация')
-async def register(
-    register_form: RegisterForm,
-    validate_token: ValidateInviteToken = Depends(
-        AuthDependencies.validate_invite_token
-    ),
-    invite: Optional[str] = None,
-    is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
-    register_user: RegisterUser = Depends(AuthDependencies.register_user),
-) -> User:
-    if invite:
-        await validate_token(invite)
-    else:
-        if not is_open_reg:
-            raise HTTPException(status_code=403)
-    user = await register_user(register_form)
-    logger.info(f'Зарегистрирован пользователь: {user.name}')
-    return user
+if settings.IS_OPEN_CLOSE_REG_ENABLED:
 
+    @router.post(path='/register', status_code=201, summary='Регистрация')
+    async def register(
+        register_form: RegisterForm,
+        validate_token: ValidateInviteToken = Depends(
+            AuthDependencies.validate_invite_token
+        ),
+        invite: Optional[str] = None,
+        is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
+        register_user: RegisterUser = Depends(AuthDependencies.register_user),
+    ) -> User:
+        if invite:
+            await validate_token(invite)
+        else:
+            if not is_open_reg:
+                raise HTTPException(status_code=403)
+        user = await register_user(register_form)
+        logger.info(f'Зарегистрирован пользователь: {user.name}')
+        return user
 
-@router.get(path='/registration', summary='Получение состояния регистрации')
-async def get_registration_state(
-    is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
-) -> RegistrationSchema:
-    return RegistrationSchema(is_open=is_open_reg)
+    @router.get(path='/registration', summary='Получение состояния регистрации')
+    async def get_registration_state(
+        is_open_reg: bool = Depends(AuthDependencies.is_open_reg),
+    ) -> RegistrationSchema:
+        return RegistrationSchema(is_open=is_open_reg)
 
-
-@router.put(
-    path='/registration', status_code=200, summary='Открытие/закрытие регистрации'
-)
-async def open_close_registration(
-    reg_schema: RegistrationSchema,
-    open_close_reg: OpenCloseRegistration = Depends(AuthDependencies.open_close_reg),
-    admin: User = Depends(roles([RoleEnum.admin])),
-):
-    await open_close_reg(reg_schema)
-    logger.info(
-        f'[{admin.name}] | Регистрация {"открыта" if reg_schema.is_open else "закрыта"}'
+    @router.put(
+        path='/registration', status_code=200, summary='Открытие/закрытие регистрации'
     )
-    return Response(status_code=200)
+    async def open_close_registration(
+        reg_schema: RegistrationSchema,
+        open_close_reg: OpenCloseRegistration = Depends(
+            AuthDependencies.open_close_reg
+        ),
+        admin: User = Depends(roles([RoleEnum.admin])),
+    ):
+        await open_close_reg(reg_schema)
+        logger.info(
+            f'[{admin.name}] | Регистрация '
+            f'{"открыта" if reg_schema.is_open else "закрыта"}'
+        )
+        return Response(status_code=200)
+else:
+
+    @router.post(path='/register', status_code=201, summary='Регистрация')
+    async def register(
+        register_form: RegisterForm,
+        register_user: RegisterUser = Depends(AuthDependencies.register_user),
+    ) -> User:
+        user = await register_user(register_form)
+        logger.info(f'Зарегистрирован пользователь: {user.name}')
+        return user

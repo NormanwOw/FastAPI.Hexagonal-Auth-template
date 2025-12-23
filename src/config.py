@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='deploy/.env', env_file_encoding='utf-8')
 
     DEBUG: bool
+    IS_OPEN_CLOSE_REG_ENABLED: bool
 
     DB_HOST: str
     DB_PORT: str
